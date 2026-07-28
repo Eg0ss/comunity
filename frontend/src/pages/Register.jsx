@@ -1,5 +1,5 @@
-// src/pages/Login.jsx
-// Page = orchestration uniquement. Toute la logique lourde est dans useAuth()/AuthContext.
+// src/pages/Register.jsx
+// Même logique que Login.jsx, adaptée à l'inscription.
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,10 +8,10 @@ import BaseInput from "../components/ui/BaseInput";
 import BaseButton from "../components/ui/BaseButton";
 import { useAuth } from "../hooks/useAuth";
 
-const Login = () => {
-  const { login } = useAuth();
+const Register = () => {
+  const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ full_name: "", username: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -22,11 +22,10 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(form);
-      navigate("/");
+      await register(form);
+      navigate("/login");
     } catch (error) {
-      // Le message d'erreur vient directement du backend (ex: "Email ou mot de passe incorrect")
-      toast.error(error.response?.data?.detail || "Erreur de connexion");
+      toast.error(error.response?.data?.detail || "Erreur lors de l'inscription");
     } finally {
       setLoading(false);
     }
@@ -39,22 +38,18 @@ const Login = () => {
           <span className="text-primary">Comm</span>
           <span className="text-secondary">Unity</span>
         </h1>
-        <BaseInput
-          label="Email" type="email" name="email"
-          value={form.email} onChange={handleChange} required
-        />
-        <BaseInput
-          label="Mot de passe" type="password" name="password"
-          value={form.password} onChange={handleChange} required
-        />
-        <BaseButton type="submit" loading={loading}>Se connecter</BaseButton>
+        <BaseInput label="Nom complet" name="full_name" value={form.full_name} onChange={handleChange} required />
+        <BaseInput label="Nom d'utilisateur" name="username" value={form.username} onChange={handleChange} required />
+        <BaseInput label="Email" type="email" name="email" value={form.email} onChange={handleChange} required />
+        <BaseInput label="Mot de passe" type="password" name="password" value={form.password} onChange={handleChange} required />
+        <BaseButton type="submit" loading={loading}>Créer mon compte</BaseButton>
         <p className="text-center text-sm mt-4">
-          Pas encore de compte ?{" "}
-          <Link to="/register" className="text-secondary font-medium">S'inscrire</Link>
+          Déjà inscrit ?{" "}
+          <Link to="/login" className="text-secondary font-medium">Se connecter</Link>
         </p>
       </form>
     </div>
   );
 };
 
-export default Login;
+export default Register;
