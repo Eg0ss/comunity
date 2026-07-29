@@ -1,33 +1,40 @@
 # app/services/auth_service.py
 # Ce service centralise tout ce qui touche à la SÉCURITÉ :
-# - le hashage/vérification des mots de passe
+# - le hashage/vérification des mots de passe (via bcrypt directement)
 # - la création et la lecture des tokens JWT
-# On le met dans services/ car c'est une logique technique transverse,
-# utilisée par plusieurs Actions (create_user_action, login_user_action...).
+#
+# NOTE : on n'utilise plus passlib (librairie non maintenue depuis 2020,
+# incompatible avec les versions récentes de bcrypt). On appelle bcrypt
+# directement, c'est plus simple et plus fiable dans la durée.
 
 import os
+import bcrypt
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
-from passlib.context import CryptContext
 
-# CryptContext = objet qui sait hasher et vérifier des mots de passe avec bcrypt
-# bcrypt = algorithme de hashage sécurisé à sens unique (impossible à "dé-hasher")
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# Récupère les infos JWT depuis le fichier .env (déjà configuré à l'étape précédente)
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", 1440))
 
+# bcrypt a une limite technique de 72 octets par mot de passe.
+# Au-delà, on tronque nous-mêmes plutôt que de laisser bcrypt planter.
+MAX_PASSWORD_BYTES = 72
+
 
 def hash_password(plain_password: str) -> str:
-    """Transforme un mot de passe en clair en une empreinte irréversible."""
-    return pwd_context.hash(plain_password)
+    """Transforme un mot de passe en clair en une empreinte irréversible (bcrypt)."""
+    password_bytes = plain_password.encode("utf-8")[:MAX_PASSWORD_BYTES]
+    # gensalt() génère un "sel" aléatoire à chaque appel : deux utilisateurs
+    # avec le même mot de passe auront des hash différents (sécurité anti-rainbow-table)
+    hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
+    return hashed.decode("utf-8")  # on stocke le hash comme une string en base
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Compare un mot de passe tapé par l'utilisateur avec le hash stocké en base."""
-    return pwd_context.verify(plain_password, hashed_password)
+    password_bytes = plain_password.encode("utf-8")[:MAX_PASSWORD_BYTES]
+    hashed_bytes = hashed_password.encode("utf-8")
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
 def create_access_token(data: dict) -> str:
@@ -37,7 +44,7 @@ def create_access_token(data: dict) -> str:
     """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})  # "exp" = date d'expiration, vérifiée automatiquement
+    to_encode.update({"exp": expire})
     return jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 

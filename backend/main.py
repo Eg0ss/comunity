@@ -1,8 +1,7 @@
 # main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import app.models  # <-- AJOUT
-
+import app.models 
 from app.controllers.user.user_controller import router as user_router
 
 app = FastAPI(title="CommUnity API")
