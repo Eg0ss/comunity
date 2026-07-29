@@ -22,3 +22,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python (Fichiers temporaires et environnement virtuel)
+**/__pycache__/
+*.pyc
+backend/venv/
+.env
+
+# JavaScript (Dépendances React)
+frontend/node_modules/
+frontend/dist/
+venv/
+__pycache__/
+*.pyc
+.env
+

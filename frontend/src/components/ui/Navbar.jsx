@@ -8,7 +8,7 @@ const Navbar = () => {
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <svg width="40" height="40" viewBox="0 0 64 64" className="w-10 h-10" aria-label="CommUnity" role="img">
               <defs>
                 <linearGradient id="cuGrad" x1="0" y1="0" x2="1" y2="1">
@@ -26,7 +26,7 @@ const Navbar = () => {
               <span className="text-primary">Comm</span>
               <span className="text-secondary">Unity</span>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-3">
             <Link
               to="/login"
