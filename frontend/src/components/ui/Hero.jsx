@@ -1,6 +1,10 @@
+// src/components/ui/Hero.jsx
+import { useNavigate } from 'react-router-dom'  
 import BaseButton from './BaseButton.jsx'
 
 const Hero = () => {
+  const navigate = useNavigate() 
+
   return (
     <section className="bg-gradient-to-br from-primary/5 via-white to-secondary/5 py-16 md:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,7 +21,9 @@ const Hero = () => {
             les échanges authentiques.
           </p>
           <div className="flex items-center justify-center">
-            <BaseButton variant="primary">Rejoindre la communauté</BaseButton>
+            <BaseButton variant="primary" onClick={() => navigate('/register')}>
+              Rejoindre la communauté
+            </BaseButton>
           </div>
         </div>
       </div>

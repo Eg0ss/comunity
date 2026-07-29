@@ -1,3 +1,5 @@
+// src/components/ui/Navbar.jsx
+import { Link } from 'react-router-dom' 
 import BaseButton from './BaseButton.jsx'
 
 const Navbar = () => {
@@ -6,14 +8,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 64 64"
-              className="w-10 h-10"
-              aria-label="CommUnity"
-              role="img"
-            >
+            <svg width="40" height="40" viewBox="0 0 64 64" className="w-10 h-10" aria-label="CommUnity" role="img">
               <defs>
                 <linearGradient id="cuGrad" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0%" stopColor="#E8590C" />
@@ -32,15 +27,15 @@ const Navbar = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <a
-              href="#"
+            <Link
+              to="/login"
               className="text-neutral-text font-medium hover:text-secondary transition-colors px-3 py-2"
             >
               Connexion
-            </a>
-            <a href="#" className="hidden sm:block">
+            </Link>
+            <Link to="/register" className="hidden sm:block">
               <BaseButton variant="primary">Inscription</BaseButton>
-            </a>
+            </Link>
           </div>
         </div>
       </div>
