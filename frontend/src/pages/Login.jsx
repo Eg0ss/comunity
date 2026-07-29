@@ -23,7 +23,7 @@ const Login = () => {
     setLoading(true);
     try {
       await login(form);
-      navigate("/");
+      navigate("/feed");
     } catch (error) {
       // Le message d'erreur vient directement du backend (ex: "Email ou mot de passe incorrect")
       toast.error(error.response?.data?.detail || "Erreur de connexion");

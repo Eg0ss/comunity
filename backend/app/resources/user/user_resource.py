@@ -13,5 +13,6 @@ def user_resource(user: User) -> dict:
         "email": user.email,
         "avatar_url": user.avatar_url,
         "provider": user.provider,
+        "role": user.role,
         "created_at": user.created_at.isoformat() if user.created_at else None,
     }

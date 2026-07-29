@@ -1,8 +1,18 @@
 import { Link, useNavigate } from 'react-router-dom'
 import BaseButton from './BaseButton.jsx'
+import { useAuth } from '../../hooks/useAuth.js'
 
-const Navbar = () => {
+const Navbar = ({ onCreatePost }) => {
   const navigate = useNavigate()
+  // On lit directement le contexte d'authentification ici :
+  // Navbar est affichée partout, donc c'est l'endroit logique pour savoir
+  // "qui est connecté ?" plutôt que de faire redescendre l'info de chaque page.
+  const { user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/') // retour à l'accueil public après déconnexion
+  }
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -27,18 +37,39 @@ const Navbar = () => {
               <span className="text-secondary">Unity</span>
             </div>
           </Link>
+
           <div className="flex items-center gap-3">
-            <Link
-              to="/login"
-              className="text-neutral-text font-medium hover:text-secondary transition-colors px-3 py-2"
-            >
-              Connexion
-            </Link>
-            <div className="hidden sm:block">
-              <BaseButton variant="primary" onClick={() => navigate('/register')}>
-                Inscription
-              </BaseButton>
-            </div>
+            {user ? (
+              // --- Utilisateur CONNECTÉ ---
+              <>
+                {onCreatePost && (
+                  <BaseButton variant="secondary" onClick={onCreatePost}>
+                    Créer un post
+                  </BaseButton>
+                )}
+                <span className="hidden sm:inline text-sm text-gray-600">
+                  Bonjour, <span className="font-semibold text-neutral-text">{user.full_name}</span>
+                </span>
+                <BaseButton variant="primary" onClick={handleLogout}>
+                  Déconnexion
+                </BaseButton>
+              </>
+            ) : (
+              // --- Visiteur NON connecté (comportement d'origine) ---
+              <>
+                <Link
+                  to="/login"
+                  className="text-neutral-text font-medium hover:text-secondary transition-colors px-3 py-2"
+                >
+                  Connexion
+                </Link>
+                <div className="hidden sm:block">
+                  <BaseButton variant="primary" onClick={() => navigate('/register')}>
+                    Inscription
+                  </BaseButton>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
