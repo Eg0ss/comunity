@@ -1,21 +1,22 @@
-const BaseButton = ({ variant = 'primary', onClick, children, type = 'button' }) => {
-  const baseClasses =
-    'px-6 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2'
+// src/components/ui/BaseButton.jsx
+// Bouton générique. variant "primary" (orange) ou "secondary" (bleu).
 
+const BaseButton = ({ children, variant = "primary", loading = false, ...props }) => {
+  const baseStyle = "w-full py-2 rounded-lg font-semibold transition disabled:opacity-60";
   const variants = {
-    primary: 'bg-primary text-white hover:bg-primary-dark focus:ring-primary',
-    secondary: 'bg-secondary text-white hover:bg-secondary-dark focus:ring-secondary',
-  }
+    primary: "bg-primary hover:bg-primary-dark text-white",
+    secondary: "bg-secondary hover:bg-secondary-dark text-white",
+  };
 
   return (
     <button
-      type={type}
-      onClick={onClick}
-      className={`${baseClasses} ${variants[variant]}`}
+      className={`${baseStyle} ${variants[variant]}`}
+      disabled={loading}
+      {...props}
     >
-      {children}
+      {loading ? "Chargement..." : children}
     </button>
-  )
-}
+  );
+};
 
-export default BaseButton
+export default BaseButton;
