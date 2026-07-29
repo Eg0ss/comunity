@@ -10,9 +10,6 @@ from app.actions.post.list_posts_action import ListPostsAction
 from app.actions.post.show_post_action import ShowPostAction
 from app.actions.post.update_post_action import UpdatePostAction
 from app.actions.post.delete_post_action import DeletePostAction
-from app.middlewares.auth_middleware import require_auth
-from app.models.post import Post
-from app.policies.post.post_policy import can_manage_post
 
 router = APIRouter()
 
@@ -31,22 +28,15 @@ def show_post(slug: str, db: Session = Depends(get_db)):
 
 
 @router.post("/posts")
-def create_post(req: CreatePostRequest, request: Request, db: Session = Depends(get_db)):
-    user = require_auth(request)
+def create_post(req: CreatePostRequest, db: Session = Depends(get_db)):
     try:
-        return CreatePostAction().execute(db, user.id, req)
+        return CreatePostAction().execute(db, req)
     except ValueError as e:
         return JSONResponse({"detail": str(e)}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.put("/posts/{post_id}")
-def update_post(post_id: int, req: UpdatePostRequest, request: Request, db: Session = Depends(get_db)):
-    user = require_auth(request)
-    post = db.query(Post).filter(Post.id == post_id).first()
-    if not post:
-        return JSONResponse({"detail": "Article introuvable"}, status_code=status.HTTP_404_NOT_FOUND)
-    if not can_manage_post(user, post):
-        return JSONResponse({"detail": "Action non autorisée"}, status_code=status.HTTP_403_FORBIDDEN)
+def update_post(post_id: int, req: UpdatePostRequest, db: Session = Depends(get_db)):
     try:
         return UpdatePostAction().execute(db, post_id, req)
     except ValueError as e:
@@ -54,13 +44,7 @@ def update_post(post_id: int, req: UpdatePostRequest, request: Request, db: Sess
 
 
 @router.delete("/posts/{post_id}")
-def delete_post(post_id: int, request: Request, db: Session = Depends(get_db)):
-    user = require_auth(request)
-    post = db.query(Post).filter(Post.id == post_id).first()
-    if not post:
-        return JSONResponse({"detail": "Article introuvable"}, status_code=status.HTTP_404_NOT_FOUND)
-    if not can_manage_post(user, post):
-        return JSONResponse({"detail": "Action non autorisée"}, status_code=status.HTTP_403_FORBIDDEN)
+def delete_post(post_id: int, db: Session = Depends(get_db)):
     try:
         DeletePostAction().execute(db, post_id)
         return {"detail": "Article supprimé"}

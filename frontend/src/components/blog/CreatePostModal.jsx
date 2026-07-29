@@ -4,6 +4,8 @@ import BaseInput from '../ui/BaseInput'
 import BaseButton from '../ui/BaseButton'
 import { createPost, updatePost } from '../../api/posts.api'
 import { getCategories } from '../../api/categories.api'
+import { ensureUser } from '../../api/user.api'
+import { getStoredUser, setStoredUser } from '../../utils/user'
 import toast from 'react-hot-toast'
 
 const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
@@ -13,7 +15,10 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
   const [loadingCats, setLoadingCats] = useState(true)
+  const [userName, setUserName] = useState('')
   const isEditing = !!post
+
+  const storedUser = getStoredUser()
 
   useEffect(() => {
     if (isOpen) {
@@ -31,6 +36,7 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
         setContent('')
         setSelectedCategories([])
       }
+      if (!storedUser) setUserName('')
     }
   }, [isOpen, post])
 
@@ -48,10 +54,28 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
       toast.error('Titre et contenu requis')
       return
     }
+
+    let user = storedUser
+    if (!user) {
+      if (!userName.trim()) {
+        toast.error('Veuillez entrer votre nom')
+        return
+      }
+      try {
+        const data = await ensureUser(userName.trim())
+        user = data.user
+        setStoredUser(user)
+      } catch {
+        toast.error("Erreur lors de l'identification")
+        return
+      }
+    }
+
     setLoading(true)
     try {
       if (isEditing) {
         await updatePost(post.id, {
+          user_id: user.id,
           title,
           content,
           category_ids: selectedCategories,
@@ -59,6 +83,7 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
         toast.success('Article mis à jour !')
       } else {
         await createPost({
+          user_id: user.id,
           title,
           content,
           category_ids: selectedCategories,
@@ -78,9 +103,18 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Modifier l\'article' : 'Nouvel article'}
+      title={isEditing ? "Modifier l'article" : 'Nouvel article'}
     >
       <form onSubmit={handleSubmit}>
+        {!storedUser && (
+          <BaseInput
+            label="Votre nom"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="Entrez votre nom"
+            required
+          />
+        )}
         <BaseInput
           label="Titre"
           value={title}

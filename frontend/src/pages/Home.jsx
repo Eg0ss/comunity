@@ -6,10 +6,9 @@ import Footer from '../components/ui/Footer'
 import PostCard from '../components/blog/PostCard'
 import CreatePostModal from '../components/blog/CreatePostModal'
 import { getPosts } from '../api/posts.api'
-import { useAuth } from '../hooks/useAuth'
 
 const staticPosts = [
-  { id: 1, title: 'Les tendances React en 2026', slug: 'les-tendances-react-en-2026', excerpt: 'Hooks, RSC, performance… tour d’horizon des évolutions qui changent la façon de construire des interfaces modernes.', author: { full_name: 'Nadia' }, date: '2026-07-12', category: 'Technologie', image: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=modern%20developer%20workspace%20with%20laptop%20showing%20code%2C%20clean%20minimal%20desk%2C%20soft%20daylight%2C%20professional%20photography%2C%20realistic&image_size=landscape_4_3' },
+  { id: 1, title: 'Les tendances React en 2026', slug: 'les-tendances-react-en-2026', excerpt: 'Hooks, RSC, performance… tour d’horizon des évolutions qui changent la façon de construire des interfaces modernes.', author: { full_name: 'Nadia' }, date: '2026-07-12', category: 'Technologie', image: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?promot=modern%20developer%20workspace%20with%20laptop%20showing%20code%2C%20clean%20minimal%20desk%2C%20soft%20daylight%2C%20professional%20photography%2C%20realistic&image_size=landscape_4_3' },
   { id: 2, title: 'Voyager léger : guide pratique', slug: 'voyager-leger-guide-pratique', excerpt: 'Une méthode simple pour préparer un sac efficace, éviter le superflu et profiter pleinement de chaque destination.', author: { full_name: 'Lucas' }, date: '2026-07-08', category: 'Voyage', image: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=traveler%20packing%20a%20carry-on%20suitcase%20on%20bed%2C%20minimal%20travel%20gear%2C%20warm%20natural%20light%2C%20realistic%20photo&image_size=landscape_4_3' },
   { id: 3, title: 'Cuisine express : 3 recettes du soir', slug: 'cuisine-express-3-recettes-du-soir', excerpt: 'Des idées rapides, gourmandes et équilibrées pour cuisiner en semaine sans passer des heures derrière les fourneaux.', author: { full_name: 'Amel' }, date: '2026-07-02', category: 'Cuisine', image: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=healthy%20home-cooked%20dinner%20on%20wooden%20table%2C%20colorful%20ingredients%2C%20cozy%20kitchen%20scene%2C%20realistic%20food%20photography&image_size=landscape_4_3' },
   { id: 4, title: 'Routine bien-être en 15 minutes', slug: 'routine-bien-etre-en-15-minutes', excerpt: 'Une mini routine facile pour se recentrer, respirer et repartir avec plus d’énergie, même dans les journées chargées.', author: { full_name: 'Sofia' }, date: '2026-06-28', category: 'Santé', image: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=person%20doing%20morning%20stretch%20and%20breathing%20exercise%20near%20window%2C%20calm%20home%20interior%2C%20soft%20light%2C%20realistic%20photo&image_size=landscape_4_3' },
@@ -21,7 +20,6 @@ const Home = () => {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const { user } = useAuth()
 
   const loadPosts = () => {
     getPosts()
@@ -39,7 +37,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-neutral-bg text-neutral-text">
-      <Navbar onCreatePost={user ? () => setShowCreateModal(true) : null} />
+      <Navbar onCreatePost={() => setShowCreateModal(true)} />
       <Hero />
       <main className="py-14">
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useAuth } from '../../hooks/useAuth'
 import { createComment, deleteComment } from '../../api/comments.api'
+import { ensureUser } from '../../api/user.api'
+import { getStoredUser, setStoredUser } from '../../utils/user'
 import BaseButton from '../ui/BaseButton'
 import toast from 'react-hot-toast'
 import { FiTrash2, FiCornerUpRight } from 'react-icons/fi'
@@ -9,14 +10,31 @@ const CommentItem = ({ comment, postId, onRefresh }) => {
   const [showReply, setShowReply] = useState(false)
   const [replyContent, setReplyContent] = useState('')
   const [replying, setReplying] = useState(false)
-  const { user } = useAuth()
+
+  const storedUser = getStoredUser()
 
   const handleReply = async (e) => {
     e.preventDefault()
     if (!replyContent.trim()) return
+
+    let user = storedUser
+    if (!user) {
+      const name = window.prompt('Votre nom :')
+      if (!name || !name.trim()) return
+      try {
+        const data = await ensureUser(name.trim())
+        user = data.user
+        setStoredUser(user)
+      } catch {
+        toast.error("Erreur lors de l'identification")
+        return
+      }
+    }
+
     setReplying(true)
     try {
       await createComment(postId, {
+        user_id: user.id,
         content: replyContent,
         parent_comment_id: comment.id,
       })
@@ -24,7 +42,7 @@ const CommentItem = ({ comment, postId, onRefresh }) => {
       setShowReply(false)
       toast.success('Réponse ajoutée')
       onRefresh?.()
-    } catch (err) {
+    } catch {
       toast.error("Erreur lors de l'ajout de la réponse")
     } finally {
       setReplying(false)
@@ -37,7 +55,7 @@ const CommentItem = ({ comment, postId, onRefresh }) => {
       await deleteComment(comment.id)
       toast.success('Commentaire supprimé')
       onRefresh?.()
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de la suppression')
     }
   }
@@ -63,24 +81,20 @@ const CommentItem = ({ comment, postId, onRefresh }) => {
           </div>
           <p className="text-sm text-gray-700 mt-1">{comment.content}</p>
           <div className="flex items-center gap-3 mt-2">
-            {user && (
-              <button
-                onClick={() => setShowReply(!showReply)}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-secondary transition-colors"
-              >
-                <FiCornerUpRight className="w-3 h-3" />
-                Répondre
-              </button>
-            )}
-            {user && user.id === comment.author?.id && (
-              <button
-                onClick={handleDelete}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
-              >
-                <FiTrash2 className="w-3 h-3" />
-                Supprimer
-              </button>
-            )}
+            <button
+              onClick={() => setShowReply(!showReply)}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-secondary transition-colors"
+            >
+              <FiCornerUpRight className="w-3 h-3" />
+              Répondre
+            </button>
+            <button
+              onClick={handleDelete}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
+            >
+              <FiTrash2 className="w-3 h-3" />
+              Supprimer
+            </button>
           </div>
         </div>
       </div>

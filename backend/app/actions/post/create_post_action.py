@@ -6,7 +6,7 @@ from app.resources.post.post_resource import post_resource
 
 
 class CreatePostAction:
-    def execute(self, db: Session, user_id: int, req: CreatePostRequest) -> dict:
+    def execute(self, db: Session, req: CreatePostRequest) -> dict:
         import re
         slug = re.sub(r'[^a-z0-9]+', '-', req.title.lower()).strip('-')
         base_slug = slug
@@ -16,7 +16,7 @@ class CreatePostAction:
             counter += 1
 
         post = Post(
-            user_id=user_id,
+            user_id=req.user_id,
             title=req.title,
             slug=slug,
             content=req.content,

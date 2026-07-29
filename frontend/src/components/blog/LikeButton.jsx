@@ -1,28 +1,36 @@
 import { useState } from 'react'
 import { FiHeart } from 'react-icons/fi'
 import { toggleLike } from '../../api/likes.api'
-import { useAuth } from '../../hooks/useAuth'
-import { useNavigate } from 'react-router-dom'
+import { ensureUser } from '../../api/user.api'
+import { getStoredUser, setStoredUser } from '../../utils/user'
 import toast from 'react-hot-toast'
 
 const LikeButton = ({ postId, initialCount = 0, initialLiked = false }) => {
   const [liked, setLiked] = useState(initialLiked)
   const [count, setCount] = useState(initialCount)
   const [loading, setLoading] = useState(false)
-  const { user } = useAuth()
-  const navigate = useNavigate()
 
   const handleClick = async () => {
+    let user = getStoredUser()
     if (!user) {
-      navigate('/login')
-      return
+      const name = window.prompt('Votre nom pour liker :')
+      if (!name || !name.trim()) return
+      try {
+        const data = await ensureUser(name.trim())
+        user = data.user
+        setStoredUser(user)
+      } catch {
+        toast.error("Erreur lors de l'identification")
+        return
+      }
     }
+
     setLoading(true)
     try {
-      const data = await toggleLike(postId)
+      const data = await toggleLike(postId, { user_id: user.id })
       setLiked(data.liked)
       setCount(data.likes_count)
-    } catch (err) {
+    } catch {
       toast.error("Erreur lors du like")
     } finally {
       setLoading(false)

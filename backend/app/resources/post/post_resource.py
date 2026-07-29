@@ -1,6 +1,15 @@
 from sqlalchemy.orm import Session
 from app.models.post import Post
-from app.resources.user.user_resource import user_resource
+
+
+def _author_data(author):
+    if not author:
+        return None
+    return {
+        "id": author.id,
+        "full_name": author.full_name,
+        "avatar_url": author.avatar_url,
+    }
 
 
 def post_resource(post: Post, db: Session | None = None, include_content: bool = False) -> dict:
@@ -9,7 +18,7 @@ def post_resource(post: Post, db: Session | None = None, include_content: bool =
         "title": post.title,
         "slug": post.slug,
         "status": post.status,
-        "author": user_resource(post.author) if post.author else None,
+        "author": _author_data(post.author),
         "categories": [{"id": c.id, "name": c.name, "slug": c.slug} for c in post.categories],
         "likes_count": len(post.likes) if post.likes else 0,
         "comments_count": len(post.comments) if post.comments else 0,

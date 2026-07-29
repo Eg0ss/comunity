@@ -6,7 +6,7 @@ from app.resources.comment.comment_resource import comment_resource
 
 
 class CreateCommentAction:
-    def execute(self, db: Session, user_id: int, post_id: int, req: CreateCommentRequest) -> dict:
+    def execute(self, db: Session, post_id: int, req: CreateCommentRequest) -> dict:
         post = db.query(Post).filter(Post.id == post_id).first()
         if not post:
             raise ValueError("Article introuvable")
@@ -18,7 +18,7 @@ class CreateCommentAction:
 
         comment = Comment(
             post_id=post_id,
-            user_id=user_id,
+            user_id=req.user_id,
             parent_comment_id=req.parent_comment_id,
             content=req.content,
         )

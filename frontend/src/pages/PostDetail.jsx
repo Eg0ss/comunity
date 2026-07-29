@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getPost } from '../api/posts.api'
-import { useAuth } from '../hooks/useAuth'
 import LikeButton from '../components/blog/LikeButton'
 import CommentSection from '../components/blog/CommentSection'
 import CategoryTag from '../components/blog/CategoryTag'
@@ -16,7 +15,6 @@ const PostDetail = () => {
   const [post, setPost] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showEditModal, setShowEditModal] = useState(false)
-  const { user } = useAuth()
 
   const loadPost = () => {
     setLoading(true)
@@ -80,15 +78,13 @@ const PostDetail = () => {
                 <h1 className="text-3xl sm:text-4xl font-bold text-neutral-text leading-tight">
                   {post.title}
                 </h1>
-                {user && user.id === post.author?.id && (
-                  <button
-                    onClick={() => setShowEditModal(true)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
-                    title="Modifier"
-                  >
-                    <FiEdit2 className="w-5 h-5 text-gray-500" />
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowEditModal(true)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                  title="Modifier"
+                >
+                  <FiEdit2 className="w-5 h-5 text-gray-500" />
+                </button>
               </div>
 
               <div className="flex items-center gap-3 mt-4 text-sm text-gray-500">
