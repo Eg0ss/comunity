@@ -9,7 +9,13 @@ const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   // Tant qu'on vérifie la session (appel /users/me en cours), on n'affiche rien
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen grid place-items-center text-gray-500">
+        Chargement...
+      </div>
+    );
+  }
 
   return user ? children : <Navigate to="/login" replace />;
 };

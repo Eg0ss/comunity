@@ -6,9 +6,12 @@ import axios from "axios";
 import { getToken, removeToken } from "../services/token.service";
 
 // Instance axios avec l'URL de base de l'API (définie dans .env)
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL,
   headers: { "Content-Type": "application/json" },
+  timeout: 15000,
 });
 
 // INTERCEPTEUR DE REQUÊTE : s'exécute AVANT chaque requête envoyée.
@@ -27,8 +30,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      removeToken();
-      window.location.href = "/login";
+      const token = getToken();
+      const url = error.config?.url || "";
+      const isAuthRequest = url.includes("/users/login") || url.includes("/users/register");
+      if (token && !isAuthRequest) {
+        removeToken();
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }

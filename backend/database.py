@@ -13,9 +13,16 @@ load_dotenv()
 # Récupère l'URL de connexion depuis .env
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set")
+
+connect_args = {}
+if DATABASE_URL.startswith("postgresql"):
+    connect_args = {"connect_timeout": int(os.getenv("DB_CONNECT_TIMEOUT", "5"))}
+
 # "engine" = l'objet qui gère la connexion physique à PostgreSQL
 # C'est comparable à la connexion PDO en PHP
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
 
 # "SessionLocal" = une fabrique de sessions.
 # Une "session" = une conversation avec la base (comme une transaction Eloquent)
