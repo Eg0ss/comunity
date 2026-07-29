@@ -1,8 +1,9 @@
-// src/components/ui/Navbar.jsx
-import { Link } from 'react-router-dom' 
+import { Link, useNavigate } from 'react-router-dom'
 import BaseButton from './BaseButton.jsx'
 
 const Navbar = () => {
+  const navigate = useNavigate()
+
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,9 +34,11 @@ const Navbar = () => {
             >
               Connexion
             </Link>
-            <Link to="/register" className="hidden sm:block">
-              <BaseButton variant="primary">Inscription</BaseButton>
-            </Link>
+            <div className="hidden sm:block">
+              <BaseButton variant="primary" onClick={() => navigate('/register')}>
+                Inscription
+              </BaseButton>
+            </div>
           </div>
         </div>
       </div>
