@@ -1,10 +1,10 @@
+// src/components/blog/PostCard.jsx
 import CategoryTag from './CategoryTag.jsx'
 import formatDate from '../../utils/formatDate.js'
 
 const PostCard = ({ title, excerpt, author, date, category, image }) => {
   const fallback =
-    'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22800%22%20height=%22450%22%20viewBox=%220%200%20800%20450%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22g%22%20x1=%220%22%20y1=%220%22%20x2=%221%22%20y2=%221%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23E8590C%22%20stop-opacity=%220.22%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%231877F2%22%20stop-opacity=%220.22%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width=%22800%22%20height=%22450%22%20fill=%22url(%23g)%22/%3E%3Ctext%20x=%2240%22%20y=%22235%22%20font-family=%22Arial%2C%20sans-serif%22%20font-size=%2242%22%20fill=%22%231E1E1E%22%20font-weight=%22700%22%3ECommUnity%3C/text%3E%3C/svg%3E'
-
+    'data:image/svg+xml,...' 
   return (
     <article className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col">
       <div className="relative h-48 w-full overflow-hidden">
@@ -12,15 +12,7 @@ const PostCard = ({ title, excerpt, author, date, category, image }) => {
           src={image}
           alt={title}
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          onLoad={() => {
-            // #region debug-point C:post-image-load
-            fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'home-images-missing', runId: 'post', hypothesisId: 'C', location: 'PostCard.jsx', msg: '[DEBUG] Post image loaded', data: { src: image, title }, ts: Date.now() }) }).catch(() => {});
-            // #endregion
-          }}
           onError={(e) => {
-            // #region debug-point A:post-image-error
-            fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'home-images-missing', runId: 'post', hypothesisId: 'A', location: 'PostCard.jsx', msg: '[DEBUG] Post image failed to load (fallback)', data: { src: image, currentSrc: e?.currentTarget?.currentSrc, title }, ts: Date.now() }) }).catch(() => {});
-            // #endregion
             if (e?.currentTarget?.src !== fallback) e.currentTarget.src = fallback
           }}
         />
