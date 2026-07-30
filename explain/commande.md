@@ -22,3 +22,8 @@ SELECT * FROM users ORDER BY created_at DESC LIMIT 1;
 
 -- Chercher un utilisateur précis par email
 SELECT * FROM users WHERE email = 'ton.email@exemple.com';
+
+--
+find . -type d -name "__pycache__" -exec rm -rf {} +
+source venv/Scripts/activate
+uvicorn main:app --reload
