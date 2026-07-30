@@ -1,20 +1,21 @@
 // src/components/ui/Navbar.jsx
-const isLoggedIn = true
-
 import { Link, useNavigate } from 'react-router-dom'
 import BaseButton from './BaseButton.jsx'
 import NavLinks from './nav/NavLinks.jsx'
 import SearchBar from './nav/SearchBar.jsx'
 import UserMenu from './nav/UserMenu.jsx'
+import { useAuth } from '../../hooks/useAuth'
 
-const Navbar = () => {
+// onCreatePost est optionnel : Home.jsx et Feed.jsx le fournissent,
+// mais Login.jsx/Register.jsx (qui n'affichent pas la Navbar) n'ont pas à s'en soucier.
+const Navbar = ({ onCreatePost }) => {
   const navigate = useNavigate()
+  const { user, logout } = useAuth() // <-- remplace "const isLoggedIn = true"
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
-          {/* Logo (inchangé) */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <svg width="40" height="40" viewBox="0 0 64 64" className="w-10 h-10" aria-label="CommUnity" role="img">
               <defs>
@@ -35,16 +36,15 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* Liens centraux : leur contenu s'adapte à isLoggedIn */}
-          <NavLinks isLoggedIn={isLoggedIn} />
+          {/* isLoggedIn = !!user : true si un utilisateur est chargé, false sinon */}
+          {/* onCreatePost transmis à NavLinks pour le lien "Créer un poste" */}
+          <NavLinks isLoggedIn={!!user} onCreatePost={onCreatePost} />
 
-          {/* Barre de recherche : toujours visible */}
           <SearchBar />
 
-          {/* Bloc de droite : UserMenu si connecté, sinon Connexion/Inscription */}
           <div className="flex items-center gap-3 shrink-0">
-            {isLoggedIn ? (
-              <UserMenu />
+            {user ? (
+              <UserMenu user={user} onLogout={logout} onCreatePost={onCreatePost} />
             ) : (
               <>
                 <Link
