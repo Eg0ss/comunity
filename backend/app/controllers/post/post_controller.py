@@ -19,9 +19,9 @@ from app.actions.post.upload_post_image_action import UploadPostImageAction
 router = APIRouter()
 
 
-@router.get("/posts")
-def list_posts(db: Session = Depends(get_db), status_filter: str | None = "published", skip: int = 0, limit: int = 20):
-    return ListPostsAction().execute(db, status=status_filter, skip=skip, limit=limit)
+# @router.get("/posts")
+# def list_posts(db: Session = Depends(get_db), status_filter: str | None = "published", skip: int = 0, limit: int = 20):
+#     return ListPostsAction().execute(db, status=status_filter, skip=skip, limit=limit)
 
 
 @router.get("/posts/{slug}")

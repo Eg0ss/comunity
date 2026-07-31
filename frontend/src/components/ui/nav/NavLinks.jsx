@@ -28,9 +28,9 @@ const NavLinks = ({ isLoggedIn, onCreatePost }) => {
         <FiTrendingUp size={17} />
         Tendances
       </Link>
-      <Link to="/categories" className={linkStyle}>
+      <Link to="/publications" className={linkStyle}>
         <FiGrid size={17} />
-        Catégories
+        Publications
       </Link>
     </div>
   )

@@ -11,5 +11,6 @@ backend/venv/
 # JavaScript (Dépendances React)
 frontend/node_modules/
 frontend/dist/
+
 static/uploads/*
 !static/uploads/posts/.gitkeep

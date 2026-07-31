@@ -1,60 +1,88 @@
-// src/components/blog/PostCard.jsx
+// src/components/blog/PostCard.jsx — remplacement complet
 import CategoryTag from './CategoryTag.jsx'
 import formatDate from '../../utils/formatDate.js'
+import { FiHeart, FiMessageSquare } from 'react-icons/fi'
 
-// On ajoute "categories" (pluriel) car c'est le nom renvoyé par le backend réel.
-// "category" (singulier) reste géré pour les données statiques de démo.
-const PostCard = ({ title, excerpt, author, date, category, categories, image }) => {
+// Nouvelle interface : ce composant reçoit maintenant un objet "post" complet
+// (plus des props éparpillées) + "onOpen", la fonction fournie par la page
+// parente pour ouvrir PostModal au clic.
+const PostCard = ({ post, onOpen }) => {
+  const { title, excerpt, author, created_at, categories, cover_image, likes_count, comments_count } = post
+
   const fallback =
-    'data:image/svg+xml,...'
+    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23f3f4f6"/%3E%3C/svg%3E'
 
-  // --- CORRECTIF PRINCIPAL ---
-  // "author" peut être soit une chaîne (ancien format / données de test),
-  // soit un objet { full_name: '...' } (format réel de l'API et des posts statiques).
-  // On normalise ici pour toujours obtenir une chaîne affichable,
-  // au lieu de planter sur author.charAt(0) quand author est un objet.
-  const authorName =
-    typeof author === 'string' ? author : author?.full_name || 'Auteur inconnu'
+  const authorName = author?.full_name || 'Auteur inconnu'
+  const displayCategory = categories?.[0]?.name || ''
 
-  // Même logique de normalisation pour la catégorie :
-  // le backend renvoie un tableau "categories: [{name, slug}, ...]",
-  // les données statiques renvoient une simple chaîne "category".
-  // On prend la première dispo, sans planter si aucune n'existe.
-  const displayCategory =
-    category || (Array.isArray(categories) && categories[0]?.name) || ''
+  // Le backend renvoie une URL relative ("/static/..."), il faut la préfixer
+  // par l'origine de l'API pour obtenir une image chargeable dans le navigateur.
+  const imageUrl = cover_image
+    ? cover_image.startsWith('http')
+      ? cover_image
+      : `${import.meta.env.VITE_API_URL}${cover_image}`
+    : fallback
 
   return (
-    <article className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col">
+    <article
+      onClick={() => onOpen(post)}
+      className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col cursor-pointer"
+    >
       <div className="relative h-48 w-full overflow-hidden">
         <img
-          src={image}
+          src={imageUrl}
           alt={title}
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           onError={(e) => {
             if (e?.currentTarget?.src !== fallback) e.currentTarget.src = fallback
           }}
         />
-        <div className="absolute top-3 left-3">
-          {/* On utilise la catégorie normalisée, plus la valeur brute */}
-          <CategoryTag category={displayCategory} />
-        </div>
+        {displayCategory && (
+          <div className="absolute top-3 left-3">
+            <CategoryTag category={displayCategory} />
+          </div>
+        )}
       </div>
       <div className="p-5 flex flex-col flex-1">
         <h3 className="text-lg font-bold text-neutral-text mb-2 hover:text-primary transition-colors">
           {title}
         </h3>
-        <p className="text-sm text-gray-600 mb-4 flex-1">
+
+        {/* line-clamp-2 = classe Tailwind qui tronque visuellement à 2 lignes,
+            avec "..." automatique, peu importe la longueur réelle du texte */}
+        <p className="text-sm text-gray-600 mb-1 flex-1 line-clamp-2">
           {excerpt}
         </p>
+
+        {/* stopPropagation : évite de déclencher DEUX fois l'ouverture du modal
+            (une fois via ce bouton, une fois via le clic sur la carte entière) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onOpen(post)
+          }}
+          className="text-xs font-semibold text-secondary hover:underline text-left mb-4 w-fit"
+        >
+          Lire la suite →
+        </button>
+
         <div className="flex items-center justify-between text-xs text-gray-500 border-t pt-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-semibold text-xs">
-              {/* authorName est toujours une string ici, donc charAt() ne plante plus */}
               {authorName.charAt(0).toUpperCase()}
             </div>
             <span className="font-medium text-gray-700">{authorName}</span>
           </div>
-          <span>{formatDate(date)}</span>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1">
+              <FiHeart size={13} /> {likes_count ?? 0}
+            </span>
+            <span className="flex items-center gap-1">
+              <FiMessageSquare size={13} /> {comments_count ?? 0}
+            </span>
+            <span>{formatDate(created_at)}</span>
+          </div>
         </div>
       </div>
     </article>
