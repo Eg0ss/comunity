@@ -1,21 +1,20 @@
 // src/pages/Feed.jsx
-// La page "membre" : affichée uniquement aux utilisateurs connectés (via PrivateRoute).
-// Contrairement à Home.jsx (page publique), elle personnalise l'accueil avec le nom
-// et le rôle de l'utilisateur, et met en avant la création de publication.
-
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Navbar from '../components/ui/Navbar'
 import Footer from '../components/ui/Footer'
 import PostCard from '../components/blog/PostCard'
+import PostModal from '../components/blog/PostModal'
 import CreatePostModal from '../components/blog/CreatePostModal'
 import { getPosts } from '../api/posts.api'
 import { useAuth } from '../hooks/useAuth'
+import { usePostsSocket } from '../hooks/usePostsSocket'
 
 const Feed = () => {
-  const { user } = useAuth() // ici "user" est garanti non-null grâce à PrivateRoute
+  const { user } = useAuth()
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [activePost, setActivePost] = useState(null)
 
   const loadPosts = () => {
     getPosts()
@@ -28,11 +27,19 @@ const Feed = () => {
     loadPosts()
   }, [])
 
+  const handlePostCreated = useCallback((newPost) => {
+    setPosts((prev) => [newPost, ...prev])
+  }, [])
+  usePostsSocket(handlePostCreated)
+
+  const handlePostDeleted = (deletedId) => {
+    setPosts((prev) => prev.filter((p) => p.id !== deletedId))
+  }
+
   return (
     <div className="min-h-screen bg-neutral-bg text-neutral-text">
       <Navbar onCreatePost={() => setShowCreateModal(true)} />
 
-      {/* Bandeau de bienvenue personnalisé, spécifique à la vue connectée */}
       <section className="bg-gradient-to-br from-primary/5 via-white to-secondary/5 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between flex-wrap gap-4">
           <div>
@@ -40,7 +47,6 @@ const Feed = () => {
               Bienvenue, {user.full_name}
             </h1>
             <p className="text-gray-600 mt-1">
-              {/* Petit badge visuel si l'utilisateur est admin */}
               {user.role === 'admin' ? (
                 <span className="inline-block bg-primary/10 text-primary text-xs font-semibold px-2 py-1 rounded-full mr-2">
                   Administrateur
@@ -63,7 +69,7 @@ const Feed = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post) => (
-                <PostCard key={post.id || post.slug} {...post} />
+                <PostCard key={post.id || post.slug} post={post} onOpen={setActivePost} />
               ))}
             </div>
           )}
@@ -71,6 +77,13 @@ const Feed = () => {
       </main>
 
       <Footer />
+
+      <PostModal
+        post={activePost}
+        isOpen={!!activePost}
+        onClose={() => setActivePost(null)}
+        onDeleted={handlePostDeleted}
+      />
 
       <CreatePostModal
         isOpen={showCreateModal}

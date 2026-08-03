@@ -25,20 +25,16 @@ const Publications = () => {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [activeCategoryId, setActiveCategoryId] = useState(null) // null = "Toutes"
+  const [activeCategoryId, setActiveCategoryId] = useState(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [activePost, setActivePost] = useState(null)
 
-  // La valeur envoyée à l'API n'est mise à jour que 400ms après la dernière frappe
   const debouncedSearch = useDebounce(search, 400)
 
-  // Chargement des catégories une seule fois, au montage de la page
   useEffect(() => {
     getCategories().then(setCategories).catch(() => setCategories([]))
   }, [])
 
-  // Ce useEffect se redéclenche chaque fois que debouncedSearch OU activeCategoryId
-  // change — c'est ici que la "requête API à chaque frappe (avec debounce)" se produit.
   useEffect(() => {
     setLoading(true)
     getPosts({
@@ -51,8 +47,6 @@ const Publications = () => {
   }, [debouncedSearch, activeCategoryId])
 
   const handlePostCreated = useCallback((newPost) => {
-    // On ne prépend le nouveau post en direct que s'il correspond au filtre actif,
-    // pour ne pas fausser une recherche/filtre en cours avec un post hors-sujet.
     setPosts((prev) => {
       const matchesSearch =
         !debouncedSearch ||
@@ -76,7 +70,6 @@ const Publications = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl md:text-3xl font-bold mb-6">Toutes les publications</h1>
 
-          {/* Barre de recherche dédiée à cette page */}
           <div className="relative max-w-md mb-5">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input
@@ -89,7 +82,6 @@ const Publications = () => {
             />
           </div>
 
-          {/* Filtre par catégorie */}
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -150,10 +142,7 @@ const Publications = () => {
       <CreatePostModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onSuccess={() => {
-          // Après création depuis cette page, CreatePostModal redirige déjà vers "/",
-          // ce useEffect ci-dessus se rechargera naturellement si l'utilisateur revient ici.
-        }}
+        onSuccess={() => {}}
       />
     </div>
   )

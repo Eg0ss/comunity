@@ -6,6 +6,7 @@ import PrivateRoute from "./routes/PrivateRoute";
 import PublicRoute from "./routes/PublicRoute";
 import Home from "./pages/Home";
 import Feed from "./pages/Feed";
+import Publications from "./pages/Publications";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -16,6 +17,7 @@ const App = () => {
         <Toaster position="top-right" />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/publications" element={<Publications />} />
           <Route
             path="/login"
             element={<PublicRoute><Login /></PublicRoute>}

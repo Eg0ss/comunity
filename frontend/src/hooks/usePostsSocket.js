@@ -1,37 +1,55 @@
 // src/hooks/usePostsSocket.js
-// Ouvre une connexion WebSocket vers le backend et appelle "onPostCreated"
-// à chaque fois qu'un post est publié par N'IMPORTE QUEL utilisateur connecté
-// (pas seulement soi-même) — c'est ça, le "temps réel".
+// Ouvre une connexion WebSocket et se reconnecte automatiquement si elle
+// se ferme de façon inattendue (ex: le double-montage de React StrictMode
+// en développement, ou une coupure réseau momentanée).
 
 import { useEffect, useRef } from 'react'
 
 export const usePostsSocket = (onPostCreated) => {
-  // useRef plutôt que useState : on n'a pas besoin de re-render quand la
-  // connexion change, juste de garder une référence stable entre les rendus.
   const socketRef = useRef(null)
+  const reconnectTimeoutRef = useRef(null)
+  const isUnmountedRef = useRef(false)
 
   useEffect(() => {
-    // On dérive l'URL du WebSocket depuis VITE_API_URL : "http://" devient "ws://"
-    // (et "https://" deviendrait "wss://" en production).
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
-    const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws/posts'
+    isUnmountedRef.current = false
 
-    const socket = new WebSocket(wsUrl)
-    socketRef.current = socket
+    const connect = () => {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+      const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws/posts'
+      const socket = new WebSocket(wsUrl)
+      socketRef.current = socket
 
-    socket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data)
-        if (message.type === 'post_created') {
-          onPostCreated(message.post)
+      socket.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data)
+          if (message.type === 'post_created') {
+            onPostCreated(message.post)
+          }
+        } catch {
+          // message non-JSON, on ignore
         }
-      } catch {
-        // Message non-JSON ou inattendu : on l'ignore silencieusement,
-        // pas besoin de faire planter l'app pour ça.
+      }
+
+      // Si la connexion se ferme (StrictMode, coupure réseau, redémarrage
+      // du backend...) et que le composant est toujours monté, on retente
+      // après une seconde plutôt que de rester silencieusement déconnecté.
+      socket.onclose = () => {
+        if (!isUnmountedRef.current) {
+          reconnectTimeoutRef.current = setTimeout(connect, 1000)
+        }
       }
     }
 
-    // Nettoyage : ferme la connexion quand le composant qui utilise ce hook disparaît
-    return () => socket.close()
+    connect()
+
+    return () => {
+      isUnmountedRef.current = true
+      clearTimeout(reconnectTimeoutRef.current)
+      // readyState check : évite d'appeler close() sur un socket qui n'a
+      // jamais fini de s'ouvrir, source du warning que tu as vu.
+      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+        socketRef.current.close()
+      }
+    }
   }, [onPostCreated])
 }

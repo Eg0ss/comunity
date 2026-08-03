@@ -16,9 +16,6 @@ import formatDate from '../../utils/formatDate'
 import toast from 'react-hot-toast'
 import { FiTrash2, FiEdit3 } from 'react-icons/fi'
 
-// postPreview : les données déjà connues depuis la carte (affichage immédiat,
-// sans écran vide le temps du chargement). fullPost (contenu complet, commentaires)
-// est rechargé via getPost(slug) à l'ouverture, car la liste ne renvoie qu'un extrait.
 const PostModal = ({ post: postPreview, isOpen, onClose, onDeleted }) => {
   const [post, setPost] = useState(postPreview)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -28,9 +25,9 @@ const PostModal = ({ post: postPreview, isOpen, onClose, onDeleted }) => {
 
   useEffect(() => {
     if (isOpen && postPreview?.slug) {
-      setPost(postPreview) // affichage immédiat avec ce qu'on a déjà
+      setPost(postPreview)
       getPost(postPreview.slug)
-        .then(setPost) // puis on remplace par la version complète (content, comments)
+        .then(setPost)
         .catch(() => toast.error('Erreur lors du chargement de la publication'))
     }
   }, [isOpen, postPreview])
@@ -46,7 +43,7 @@ const PostModal = ({ post: postPreview, isOpen, onClose, onDeleted }) => {
       toast.success('Publication supprimée')
       setShowDeleteConfirm(false)
       onClose()
-      onDeleted?.(post.id) // permet à la page appelante de retirer le post de sa liste
+      onDeleted?.(post.id)
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Erreur lors de la suppression')
     } finally {
@@ -82,8 +79,6 @@ const PostModal = ({ post: postPreview, isOpen, onClose, onDeleted }) => {
           </div>
         </div>
 
-        {/* Contenu intégral : whitespace-pre-wrap conserve les retours à la ligne
-            tapés par l'auteur dans le textarea de création */}
         <p className="text-gray-700 whitespace-pre-wrap leading-relaxed mb-6">
           {post.content}
         </p>
@@ -91,9 +86,6 @@ const PostModal = ({ post: postPreview, isOpen, onClose, onDeleted }) => {
         <div className="flex items-center justify-between border-t border-b py-3 mb-6">
           <LikeButton postId={post.id} initialCount={post.likes_count} />
 
-          {/* Actions CRUD réservées au propriétaire — l'énoncé précise que TOUT
-              utilisateur connecté (même l'auteur) peut liker/commenter, donc
-              LikeButton et CommentSection restent visibles pour lui aussi. */}
           {isOwner && (
             <div className="flex gap-2">
               <button
@@ -126,14 +118,13 @@ const PostModal = ({ post: postPreview, isOpen, onClose, onDeleted }) => {
         message="Cette action est définitive. La publication, ses commentaires et ses likes seront supprimés."
       />
 
-      {/* Réutilise CreatePostModal existant en mode édition (post fourni en prop) */}
       <CreatePostModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         post={post}
         onSuccess={() => {
           setShowEditModal(false)
-          getPost(post.slug).then(setPost) // recharge le post modifié dans le modal
+          getPost(post.slug).then(setPost)
         }}
       />
     </>

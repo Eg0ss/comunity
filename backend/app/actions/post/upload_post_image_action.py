@@ -1,7 +1,4 @@
 # app/actions/post/upload_post_image_action.py
-# Reçoit un fichier déjà validé par FastAPI (UploadFile), le sauvegarde sur disque
-# dans backend/static/uploads/posts/, et enregistre la référence en base (PostFile).
-
 import os
 import uuid
 from fastapi import UploadFile
@@ -10,19 +7,40 @@ from app.models.post import Post
 from app.models.post_file import PostFile
 
 UPLOAD_DIR = "static/uploads/posts"
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
-MAX_FILE_SIZE_MB = 5
+MAX_FILE_SIZE_MB = 8
+
+# On accepte tout ce qui se déclare comme une image (Content-Type "image/..."),
+# plutôt qu'une liste fermée d'extensions — ça couvre jpg, png, webp, gif, bmp,
+# svg, avif, heic, tiff... tout ce que le navigateur peut envoyer.
+EXTENSION_BY_CONTENT_TYPE = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+    "image/bmp": ".bmp",
+    "image/svg+xml": ".svg",
+    "image/avif": ".avif",
+    "image/heic": ".heic",
+    "image/heif": ".heif",
+    "image/tiff": ".tiff",
+    "image/x-icon": ".ico",
+}
 
 
 class UploadPostImageAction:
     def execute(self, db: Session, post: Post, file: UploadFile) -> dict:
-        ext = os.path.splitext(file.filename or "")[1].lower()
-        if ext not in ALLOWED_EXTENSIONS:
-            raise ValueError("Format d'image non supporté (jpg, png, webp, gif uniquement)")
+        content_type = (file.content_type or "").lower()
+
+        if not content_type.startswith("image/"):
+            raise ValueError("Le fichier envoyé n'est pas une image")
+
+        # On essaie d'abord l'extension du nom de fichier original (garde le
+        # format exact si connu), sinon on la déduit du Content-Type déclaré,
+        # sinon on tombe sur ".img" en dernier recours plutôt que de bloquer.
+        original_ext = os.path.splitext(file.filename or "")[1].lower()
+        ext = original_ext if original_ext else EXTENSION_BY_CONTENT_TYPE.get(content_type, ".img")
 
         os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-        # Nom de fichier unique pour éviter tout écrasement entre deux images du même nom
         unique_name = f"{uuid.uuid4().hex}{ext}"
         disk_path = os.path.join(UPLOAD_DIR, unique_name)
 
@@ -33,7 +51,6 @@ class UploadPostImageAction:
         with open(disk_path, "wb") as f:
             f.write(content)
 
-        # URL publique : servie via app.mount("/static", ...) dans main.py
         public_url = f"/static/uploads/posts/{unique_name}"
 
         post_file = PostFile(

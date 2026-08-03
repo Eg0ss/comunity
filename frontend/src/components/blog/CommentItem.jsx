@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { createComment, deleteComment } from '../../api/comments.api'
 import BaseButton from '../ui/BaseButton'
+import ConfirmModal from './ConfirmModal'
 import toast from 'react-hot-toast'
 import { FiTrash2, FiCornerUpRight } from 'react-icons/fi'
 
@@ -9,6 +10,8 @@ const CommentItem = ({ comment, postId, onRefresh }) => {
   const [showReply, setShowReply] = useState(false)
   const [replyContent, setReplyContent] = useState('')
   const [replying, setReplying] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false) // remplace window.confirm()
+  const [deleting, setDeleting] = useState(false)
   const { user } = useAuth()
 
   const handleReply = async (e) => {
@@ -31,20 +34,29 @@ const CommentItem = ({ comment, postId, onRefresh }) => {
     }
   }
 
-  const handleDelete = async () => {
-    if (!confirm('Supprimer ce commentaire ?')) return
+  // N'ouvre plus que le modal de confirmation ; la suppression réelle
+  // se fait dans confirmDelete(), appelée seulement après clic sur "Supprimer"
+  // à l'intérieur du ConfirmModal.
+  const handleDelete = () => setShowDeleteConfirm(true)
+
+  const confirmDelete = async () => {
+    setDeleting(true)
     try {
       await deleteComment(comment.id)
       toast.success('Commentaire supprimé')
+      setShowDeleteConfirm(false)
       onRefresh?.()
     } catch (err) {
       toast.error('Erreur lors de la suppression')
+    } finally {
+      setDeleting(false)
     }
   }
 
   const authorInitial = comment.author?.full_name?.charAt(0).toUpperCase() || '?'
 
   return (
+    <>
     <div className="pl-4 border-l-2 border-gray-200">
       <div className="flex items-start gap-3 mb-2">
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
@@ -123,6 +135,16 @@ const CommentItem = ({ comment, postId, onRefresh }) => {
         </div>
       )}
     </div>
+
+    <ConfirmModal
+      isOpen={showDeleteConfirm}
+      onClose={() => setShowDeleteConfirm(false)}
+      onConfirm={confirmDelete}
+      loading={deleting}
+      title="Supprimer le commentaire ?"
+      message="Cette action est définitive."
+    />
+    </>
   )
 }
 
