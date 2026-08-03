@@ -15,13 +15,9 @@ from app.models.post import Post
 from app.policies.post.post_policy import can_manage_post
 from fastapi import UploadFile, File
 from app.actions.post.upload_post_image_action import UploadPostImageAction
+from app.sockets.post_socket import broadcast_post_created
 
 router = APIRouter()
-
-
-# @router.get("/posts")
-# def list_posts(db: Session = Depends(get_db), status_filter: str | None = "published", skip: int = 0, limit: int = 20):
-#     return ListPostsAction().execute(db, status=status_filter, skip=skip, limit=limit)
 
 
 @router.get("/posts/{slug}")
@@ -33,10 +29,15 @@ def show_post(slug: str, db: Session = Depends(get_db)):
 
 
 @router.post("/posts")
-def create_post(req: CreatePostRequest, request: Request, db: Session = Depends(get_db)):
+async def create_post(req: CreatePostRequest, request: Request, db: Session = Depends(get_db)):
     user = require_auth(request)
     try:
-        return CreatePostAction().execute(db, user.id, req)
+        created = CreatePostAction().execute(db, user.id, req)
+        # C'est la ligne qui manquait : diffuse le nouveau post à tous les
+        # clients WebSocket connectés (/ws/posts). Sans elle, la connexion
+        # existe mais personne ne lui envoie jamais rien.
+        await broadcast_post_created(created)
+        return created
     except ValueError as e:
         return JSONResponse({"detail": str(e)}, status_code=status.HTTP_400_BAD_REQUEST)
 
@@ -82,6 +83,7 @@ def list_posts(
     return ListPostsAction().execute(
         db, status=status_filter, search=search, category_id=category_id, skip=skip, limit=limit
     )
+
 
 @router.post("/posts/{post_id}/image")
 def upload_post_image(post_id: int, request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
