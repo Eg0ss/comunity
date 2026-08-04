@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import BaseInput from "../components/ui/BaseInput";
 import BaseButton from "../components/ui/BaseButton";
 import { useAuth } from "../hooks/useAuth";
+import GoogleButton from "../components/ui/GoogleButton";
 
 const Register = () => {
   const { register } = useAuth();
@@ -47,6 +48,18 @@ const Register = () => {
           Déjà inscrit ?{" "}
           <Link to="/login" className="text-secondary font-medium">Se connecter</Link>
         </p>
+        {/* <BaseButton type="submit" loading={loading}>Se connecter</BaseButton> */}
+
+        {/* AJOUT */}
+        <div className="flex items-center gap-3 my-4">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400">ou</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+        <GoogleButton />
+        {/* FIN AJOUT */}
+
+        <p className="text-center text-sm mt-4"></p>
       </form>
     </div>
   );

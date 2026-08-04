@@ -1,14 +1,16 @@
 __pycache__/
 *.pyc
 .env
+.env.*
+!.env.example
 venv/
-# Python (Fichiers temporaires et environnement virtuel)
+
 **/__pycache__/
 *.pyc
 backend/venv/
 .env
 
-# JavaScript (Dépendances React)
+
 frontend/node_modules/
 frontend/dist/
 

@@ -48,9 +48,16 @@ export const AuthProvider = ({ children }) => {
     toast.success("Déconnexion réussie");
   };
 
+  const loginWithGoogleToken = async (accessToken) => {
+  setToken(accessToken)
+  const { data } = await getMeRequest() // on n'a que le token, pas encore le profil
+  setUser(data)
+  toast.success(`Bienvenue, ${data.full_name} !`)
+}
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  <AuthContext.Provider value={{ user, loading, login, register, logout, loginWithGoogleToken }}>
+    {children}
+  </AuthContext.Provider>
+);
 };

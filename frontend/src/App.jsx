@@ -9,6 +9,7 @@ import Feed from "./pages/Feed";
 import Publications from "./pages/Publications";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import GoogleCallback from "./pages/GoogleCallback";
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
             path="/register"
             element={<PublicRoute><Register /></PublicRoute>}
           />
+          <Route path="/auth/google/callback" element={<GoogleCallback />} />
           <Route
             path="/feed"
             element={<PrivateRoute><Feed /></PrivateRoute>}
