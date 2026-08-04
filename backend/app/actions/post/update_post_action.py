@@ -3,6 +3,7 @@ from app.models.post import Post
 from app.models.category import Category
 from app.requests.post.update_post_request import UpdatePostRequest
 from app.resources.post.post_resource import post_resource
+from app.services.html_sanitizer import sanitize_post_content
 
 
 class UpdatePostAction:
@@ -14,7 +15,7 @@ class UpdatePostAction:
         if req.title is not None:
             post.title = req.title
         if req.content is not None:
-            post.content = req.content
+            post.content = sanitize_post_content(req.content)
         if req.status is not None:
             post.status = req.status
         if req.category_ids is not None:

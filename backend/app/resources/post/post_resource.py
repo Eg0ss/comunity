@@ -1,21 +1,19 @@
 # app/resources/post/post_resource.py
-# On ajoute deux champs utiles pour la carte (PostCard) côté frontend :
-#   - excerpt      : un extrait du contenu, tronqué côté serveur (évite d'envoyer
-#                     tout le "content" complet dans la liste, inutilement lourd)
-#   - cover_image  : l'URL de la première image liée au post, ou None s'il n'y en a pas
+# - excerpt      : extrait TEXTE BRUT (sans HTML) du contenu, pour la carte (PostCard)
+# - cover_image  : l'URL de la première image liée au post, ou None s'il n'y en a pas
 
 from sqlalchemy.orm import Session
 from app.models.post import Post
 from app.resources.user.user_resource import user_resource
+from app.services.html_sanitizer import html_to_plain_text
 
 EXCERPT_LENGTH = 240
 
 
 def post_resource(post: Post, db: Session | None = None, include_content: bool = False) -> dict:
-    # post.content[:240] + "…" si plus long, sinon tel quel
-    excerpt = post.content if len(post.content) <= EXCERPT_LENGTH else post.content[:EXCERPT_LENGTH].rstrip() + "…"
+    plain_content = html_to_plain_text(post.content)
+    excerpt = plain_content if len(plain_content) <= EXCERPT_LENGTH else plain_content[:EXCERPT_LENGTH].rstrip() + "…"
 
-    # post.files est déjà chargé par la relation SQLAlchemy (pas besoin d'une requête en plus)
     cover_image = post.files[0].file_url if post.files else None
 
     data = {

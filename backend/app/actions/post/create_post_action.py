@@ -3,6 +3,7 @@ from app.models.post import Post
 from app.models.category import Category
 from app.requests.post.create_post_request import CreatePostRequest
 from app.resources.post.post_resource import post_resource
+from app.services.html_sanitizer import sanitize_post_content
 
 
 class CreatePostAction:
@@ -19,7 +20,7 @@ class CreatePostAction:
             user_id=user_id,
             title=req.title,
             slug=slug,
-            content=req.content,
+            content=sanitize_post_content(req.content),
             status=req.status,
         )
 

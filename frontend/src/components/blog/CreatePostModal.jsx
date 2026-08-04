@@ -4,120 +4,126 @@
 //   - un champ d'upload d'image (optionnel)
 //   - après une CRÉATION réussie (pas une modification), redirection vers "/"
 
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import BaseModal from '../ui/BaseModal'
-import BaseInput from '../ui/BaseInput'
-import BaseButton from '../ui/BaseButton'
-import { createPost, updatePost, uploadPostImage } from '../../api/posts.api'
-import { getCategories } from '../../api/categories.api'
-import toast from 'react-hot-toast'
-import { FiImage, FiX } from 'react-icons/fi'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import BaseModal from "../ui/BaseModal";
+import BaseInput from "../ui/BaseInput";
+import BaseButton from "../ui/BaseButton";
+import { createPost, updatePost, uploadPostImage } from "../../api/posts.api";
+import { getCategories } from "../../api/categories.api";
+import toast from "react-hot-toast";
+import { FiImage, FiX } from "react-icons/fi";
+import RichTextEditor from "./RichTextEditor";
 
 const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [selectedCategories, setSelectedCategories] = useState([])
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [loadingCats, setLoadingCats] = useState(true)
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingCats, setLoadingCats] = useState(true);
 
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
-  const isEditing = !!post
-  const navigate = useNavigate()
+  const isEditing = !!post;
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isOpen) {
       getCategories()
         .then(setCategories)
-        .catch(() => toast.error('Erreur chargement catégories'))
-        .finally(() => setLoadingCats(false))
+        .catch(() => toast.error("Erreur chargement catégories"))
+        .finally(() => setLoadingCats(false));
 
       if (post) {
-        setTitle(post.title || '')
-        setContent(post.content || '')
-        setSelectedCategories(post.categories?.map((c) => c.id) || [])
+        setTitle(post.title || "");
+        setContent(post.content || "");
+        setSelectedCategories(post.categories?.map((c) => c.id) || []);
       } else {
-        setTitle('')
-        setContent('')
-        setSelectedCategories([])
+        setTitle("");
+        setContent("");
+        setSelectedCategories([]);
       }
-      setImageFile(null)
-      setImagePreview(null)
+      setImageFile(null);
+      setImagePreview(null);
     }
-  }, [isOpen, post])
+  }, [isOpen, post]);
 
   const handleToggleCategory = (catId) => {
     setSelectedCategories((prev) =>
-      prev.includes(catId) ? prev.filter((id) => id !== catId) : [...prev, catId]
-    )
-  }
+      prev.includes(catId)
+        ? prev.filter((id) => id !== catId)
+        : [...prev, catId],
+    );
+  };
 
   const handleImageChange = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
-  }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
 
   const removeImage = () => {
-    setImageFile(null)
-    setImagePreview(null)
-  }
+    setImageFile(null);
+    setImagePreview(null);
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!title.trim() || !content.trim()) {
-      toast.error('Titre et contenu requis')
-      return
+    e.preventDefault();
+    const contentIsEmpty = content.replace(/<[^>]*>/g, "").trim() === "";
+    if (!title.trim() || contentIsEmpty) {
+      toast.error("Titre et contenu requis");
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     try {
-      let savedPost
+      let savedPost;
       if (isEditing) {
         savedPost = await updatePost(post.id, {
           title,
           content,
           category_ids: selectedCategories,
-        })
-        toast.success('Article mis à jour !')
+        });
+        toast.success("Article mis à jour !");
       } else {
         savedPost = await createPost({
           title,
           content,
           category_ids: selectedCategories,
-        })
-        toast.success('Article créé !')
+        });
+        toast.success("Article créé !");
       }
 
       if (imageFile && savedPost?.id) {
         try {
-          await uploadPostImage(savedPost.id, imageFile)
+          await uploadPostImage(savedPost.id, imageFile);
         } catch {
-          toast.error("L'article est publié, mais l'image n'a pas pu être envoyée")
+          toast.error(
+            "L'article est publié, mais l'image n'a pas pu être envoyée",
+          );
         }
       }
 
-      onSuccess?.()
-      onClose()
+      onSuccess?.();
+      onClose();
 
       if (!isEditing) {
-        navigate('/')
+        navigate("/");
       }
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Erreur lors de la sauvegarde')
+      toast.error(err.response?.data?.detail || "Erreur lors de la sauvegarde");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? "Modifier l'article" : 'Nouvel article'}
+      title={isEditing ? "Modifier l'article" : "Nouvel article"}
     >
       <form onSubmit={handleSubmit}>
         <BaseInput
@@ -129,22 +135,23 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
         />
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Contenu</label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Écrivez votre article..."
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 resize-none"
-            rows={8}
-            required
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Contenu
+          </label>
+          <RichTextEditor value={content} onChange={setContent} />
         </div>
 
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Image (optionnel)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Image (optionnel)
+          </label>
           {imagePreview ? (
             <div className="relative">
-              <img src={imagePreview} alt="Aperçu" className="w-full h-40 object-cover rounded-lg" />
+              <img
+                src={imagePreview}
+                alt="Aperçu"
+                className="w-full h-40 object-cover rounded-lg"
+              />
               <button
                 type="button"
                 onClick={removeImage}
@@ -157,13 +164,20 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
             <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg py-8 cursor-pointer hover:border-primary transition-colors text-gray-500">
               <FiImage size={24} />
               <span className="text-sm">Cliquez pour ajouter une image</span>
-              <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
             </label>
           )}
         </div>
 
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Catégories</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Catégories
+          </label>
           {loadingCats ? (
             <p className="text-sm text-gray-500">Chargement...</p>
           ) : categories.length === 0 ? (
@@ -177,8 +191,8 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
                   onClick={() => handleToggleCategory(cat.id)}
                   className={`px-3 py-1.5 text-sm rounded-full border transition-all ${
                     selectedCategories.includes(cat.id)
-                      ? 'bg-primary text-white border-primary'
-                      : 'bg-white text-gray-600 border-gray-300 hover:border-primary'
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white text-gray-600 border-gray-300 hover:border-primary"
                   }`}
                 >
                   {cat.name}
@@ -197,12 +211,12 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess, post = null }) => {
             Annuler
           </button>
           <BaseButton variant="primary" type="submit" disabled={loading}>
-            {loading ? '...' : isEditing ? 'Enregistrer' : 'Publier'}
+            {loading ? "..." : isEditing ? "Enregistrer" : "Publier"}
           </BaseButton>
         </div>
       </form>
     </BaseModal>
-  )
-}
+  );
+};
 
-export default CreatePostModal
+export default CreatePostModal;
